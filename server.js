@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 require('dotenv').config();
 
 app.get("/:universalURL", (req, res) => {
-   res.send("404 URL NOT FOUND");
+   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Middleware to parse JSON
