@@ -4,14 +4,10 @@ const bodyParser = require('body-parser');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 
 // Load environment variables from .env file
 require('dotenv').config();
-
-app.get("/:universalURL", (req, res) => {
-   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // Middleware to parse JSON
 app.use(bodyParser.json());

@@ -4,22 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tapioca!</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 </head>
 <body>
     <header>
-        <img src="logo.png" alt="Tapioca Logo">
-        
+        <img src="logo.png" alt="Logo">
+        <h1>Travel Assitant</h1>
     </header>
-    <main>
-        <form id="promptForm">
-            <label for="prompt">Enter your prompt:</label><br>
-            <input type="text" id="prompt" name="prompt" required><br>
-            <button type="submit">Submit</button>
-        </form>
-        <div id="output"></div>
-    </main>
-
+    <div class="input-container">
+        <b>Select A Destination On The Map<b>
+        <div id="map" class="map"></div>
+        <input type="text" id="destination" placeholder="Or Add Manually">
+        <label for="budget">Budget level ($500 to $100,000):</label>
+        <input type="range" id="budget" min="500" max="100000" step="500" value="5000" oninput="updateBudgetValue(this.value)">
+        <span id="budgetValue">$5000</span>
+        <label for="start-time">Start Time:</label>
+        <input type="text" id="start-time" class="calendar">
+        <label for="end-time">End Time:</label>
+        <input type="text" id="end-time" class="calendar">
+        <label for="trip-purpose">Trip Purpose:</label>
+        <select id="trip-purpose">
+            <option value="Work">Work</option>
+            <option value="Fun">Fun</option>
+            <option value="Vacay">Vacay</option>
+            <option value="Family">Family</option>
+        </select>
+        <input type="text" id="factors" placeholder="Enter other factors (e.g., preferences)">
+        <button onclick="generateText()">Ask AI</button>
+        <div>
+        <b>Need Help Or Have Questions? Contact Us At Contact@OnTapioca.com<b>
+    </div>
+    <div id="chatbox"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,61 +1,94 @@
-// Client-side JavaScript to interact with the Gemini API
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the map
+    const map = L.map('map').setView([20, 0], 2); // Centered at (20, 0) with zoom level 2
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-// Function to send a prompt to the server and display the generated text
-async function generateText(prompt) {
-    const response = await fetch('/generateText', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ prompt })
+    // Add Leaflet search control
+    const searchControl = L.Control.geocoder({
+        defaultMarkGeocode: false,
+        placeholder: 'Search for a place',
+        geocoder: L.Control.Geocoder.nominatim(),
+        position: 'topright',
+        showResultIcons: true,
+        collapsed: true
+    }).on('markgeocode', function(e) {
+        const { center } = e.geocode;
+        const selectedDestination = `${center.lat},${center.lng}`;
+        document.getElementById('destination').value = selectedDestination;
+    }).addTo(map);
+
+    // Add click event to the map
+    map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        const selectedDestination = `${lat},${lng}`;
+        document.getElementById('destination').value = selectedDestination;
     });
-    const data = await response.json();
-    displayText(prompt, data.text);
+
+    // Initialize Flatpickr for the calendar inputs
+    flatpickr('.calendar', {
+        enableTime: true,
+        dateFormat: 'Y-m-d H:i',
+    });
+});
+
+function updateBudgetValue(value) {
+    document.getElementById('budgetValue').textContent = `$${value}`;
 }
 
-// Function to format text with * or • for new lines and ** for double new lines
-function formatText(text, symbol) {
-    const placeholder = '---DOUBLE_NEWLINE---';
-    const formattedText = text.replace(/\*\*/g, placeholder).split('*').map(part => part.trim());
-    return formattedText.map(part => part.replace(new RegExp(placeholder, 'g'), '\n\n'));
-}
+async function generateText() {
+    const destination = document.getElementById('destination').value;
+    const budget = document.getElementById('budget').value;
+    const startTime = document.getElementById('start-time').value;
+    const endTime = document.getElementById('end-time').value;
+    const tripPurpose = document.getElementById('trip-purpose').value;
+    const factors = document.getElementById('factors').value;
+    const question = `I'm going on a ${tripPurpose} trip to ${destination}. My budget level is $${budget}, I get there ${startTime} and get back ${endTime} , and other factors to consider are: ${factors}. Can you recommend the best places to stay, eat, and see while I'm there, including price and quality? DO NOT ASK FOR ANY OTHER DETAILS, reccomend the places like so:
 
-// Function to display both user input and AI response
-function displayText(userInput, aiResponse) {
-    const outputDiv = document.getElementById('output');
+Hotel/Motels"
+Budget: 1(price) 2(price) 3(price) 
+Mid-Class: 1(price) 2(price) 3(price)
+High-Class 1(price) 2(price) 3(price) 
 
-    // Create a container div to hold both user and AI entries together
-    const conversationDiv = document.createElement('div');
+do the same with food and for places to see just display and describe them, also give links to everything`;
 
     // Display user input
-    const formattedUserInput = formatText(userInput, '*');
-    formattedUserInput.forEach(part => {
-        const userDiv = document.createElement('div');
-        userDiv.textContent = `* ${part}`;
-        userDiv.classList.add('output-entry', 'user-input');
-        conversationDiv.appendChild(userDiv);
-    });
+    addMessageToChatbox(`* $Asking Ai...`);
 
-    // Display AI response
-    const formattedAiResponse = formatText(aiResponse, '•');
-    formattedAiResponse.forEach(part => {
-        const aiDiv = document.createElement('div');
-        aiDiv.textContent = `• ${part}`;
-        aiDiv.classList.add('output-entry', 'ai-output');
-        conversationDiv.appendChild(aiDiv);
-    });
+    try {
+        const response = await fetch('/generateText', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ prompt: question })
+        });
 
-    // Prepend the conversation div to the output div
-    outputDiv.prepend(conversationDiv);
+        const data = await response.json();
+        if (data.text) {
+            addMessageToChatbox(`• ${formatResponse(data.text)}`);
+        } else {
+            addMessageToChatbox('• No response from AI.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        addMessageToChatbox('• Error communicating with AI.');
+    }
 }
 
-// Function to handle form submission
-function handleSubmit(event) {
-    event.preventDefault();
-    const prompt = document.getElementById('prompt').value;
-    generateText(prompt);
-    document.getElementById('prompt').value = ''; // Clear the input field after submission
+function addMessageToChatbox(message) {
+    const chatbox = document.getElementById('chatbox');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.textContent = formatMessage(message);
+    chatbox.insertBefore(messageElement, chatbox.firstChild);
 }
 
-// Attach event listener to form submission
-document.getElementById('promptForm').addEventListener('submit', handleSubmit);
+function formatMessage(message) {
+    return message.replace(/\*\*/g, '\n\n').replace(/\*/g, '\n');
+}
+
+function formatResponse(response) {
+    return response.replace(/\*\*/g, '\n\n').replace(/\*/g, '\n');
+}
