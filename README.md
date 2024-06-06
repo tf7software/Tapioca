@@ -1,2 +1,2 @@
 # Tapioca
-An node.js ai project
+An node.js ai project for planning trips
